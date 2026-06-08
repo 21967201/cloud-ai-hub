@@ -2,10 +2,12 @@
   "name": "cloud-ai-hub",
   "version": "1.0.0",
   "description": "Cloud-First AI Skill Distribution & Orchestration Hub",
-  "main": "server.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
   },
-  "dependencies": {}
+  "devDependencies": {
+    "wrangler": "^3.0.0"
+  }
 }

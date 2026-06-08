@@ -1,4 +1,12 @@
 name = "cloud-ai-hub"
-type = "go"
+main = "index.js"
 compatibility_date = "2024-01-01"
-main = "./main.go"
+compatibility_flags = ["nodejs_compat"]
+
+[env.production]
+routes = [
+  { pattern = "*.example.com", zone_name = "example.com" }
+]
+
+[build]
+command = "npm install"
