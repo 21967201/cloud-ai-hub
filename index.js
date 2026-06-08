@@ -1,4 +1,4 @@
-// 全局数据存储
+// 全局数据存储（Cloudflare Workers 中持久化需使用 D1 或 KV）
 let stateStore = {};
 let stateMutex = {};
 let skillHub = [];
@@ -50,56 +50,58 @@ const htmlPage = `<!DOCTYPE html>
 </html>`;
 
 // Cloudflare Workers 核心：监听 fetch 事件
-export default {
-  async fetch(request) {
-    const url = new URL(request.url);
-    
-    // 主页面
-    if (url.pathname === '/' && request.method === 'GET') {
-      return new Response(htmlPage, {
-        status: 200,
-        headers: { 'Content-Type': 'text/html' }
-      });
-    }
-    
-    // 状态更新 API
-    if (url.pathname === '/api/v1/state/test-001/update' && request.method === 'POST') {
-      if (stateMutex['test-001']) {
-        return new Response('State is currently being updated', { status: 409 });
-      }
-      stateMutex['test-001'] = true;
-      setTimeout(() => delete stateMutex['test-001'], 1000);
-      stateStore['test-001'] = {
-        task_id: 'test-001',
-        status: 'updated',
-        context: { updated_at: new Date().toISOString() }
-      };
-      return new Response('State updated for task test-001', { status: 200 });
-    }
-    
-    // 技能进化 API
-    if (url.pathname === '/api/v1/skills/evolve' && request.method === 'POST') {
-      const skill = {
-        name: `auto_gen_skill_${Date.now()}`,
-        created_at: new Date().toISOString(),
-        triggered_at: new Date().toISOString()
-      };
-      skillHub.push(skill);
-      return new Response(JSON.stringify({ success: true, skill }), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-    
-    // 技能列表 API
-    if (url.pathname === '/api/v1/skills' && request.method === 'GET') {
-      return new Response(JSON.stringify(skillHub), {
-        status: 200,
-        headers: { 'Content-Type': 'application/json' }
-      });
-    }
-    
-    // 404
-    return new Response('Not Found', { status: 404 });
+addEventListener('fetch', (event) => {
+  event.respondWith(handleRequest(event.request));
+});
+
+async function handleRequest(request) {
+  const url = new URL(request.url);
+  
+  // 主页面
+  if (url.pathname === '/' && request.method === 'GET') {
+    return new Response(htmlPage, {
+      status: 200,
+      headers: { 'Content-Type': 'text/html' }
+    });
   }
-};
+  
+  // 状态更新 API
+  if (url.pathname === '/api/v1/state/test-001/update' && request.method === 'POST') {
+    if (stateMutex['test-001']) {
+      return new Response('State is currently being updated', { status: 409 });
+    }
+    stateMutex['test-001'] = true;
+    setTimeout(() => delete stateMutex['test-001'], 1000);
+    stateStore['test-001'] = {
+      task_id: 'test-001',
+      status: 'updated',
+      context: { updated_at: new Date().toISOString() }
+    };
+    return new Response('State updated for task test-001', { status: 200 });
+  }
+  
+  // 技能进化 API
+  if (url.pathname === '/api/v1/skills/evolve' && request.method === 'POST') {
+    const skill = {
+      name: `auto_gen_skill_${Date.now()}`,
+      created_at: new Date().toISOString(),
+      triggered_at: new Date().toISOString()
+    };
+    skillHub.push(skill);
+    return new Response(JSON.stringify({ success: true, skill }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+  
+  // 技能列表 API
+  if (url.pathname === '/api/v1/skills' && request.method === 'GET') {
+    return new Response(JSON.stringify(skillHub), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' }
+    });
+  }
+  
+  // 404
+  return new Response('Not Found', { status: 404 });
+}
