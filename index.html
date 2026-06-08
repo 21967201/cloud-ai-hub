@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head><title>Cloud AI Hub</title>
+<style>
+  body { background: #1a1a1a; color: #00ff9d; font-family: monospace; padding: 20px; }
+  .card { background: #000; border: 1px solid #333; padding: 20px; margin: 20px 0; }
+  button { background: #00ff9d; color: #000; border: none; padding: 10px 20px; cursor: pointer; margin: 5px; }
+  .success { color: #00ff9d; }
+  .error { color: #ff4444; }
+</style>
+</head>
+<body>
+  <h1>🤖 Cloud AI Hub Dashboard</h1>
+  <div class="card">
+    <h3>📊 State Status</h3>
+    <div id="state">Empty</div>
+    <button onclick="updateState()">Update State</button>
+  </div>
+  <div class="card">
+    <h3>🧬 Evolution Logs</h3>
+    <div id="logs"></div>
+    <button onclick="evolve()">Trigger Evolution</button>
+  </div>
+  <div class="card">
+    <h3>📦 Deployed Skills</h3>
+    <div id="skills"></div>
+  </div>
+  <div id="status" class="success"></div>
+
+<script>
+let stateStore = {};
+let stateMutex = {};
+let skillHub = [];
+
+function renderPage() {
+  document.getElementById('state').innerText = JSON.stringify(stateStore['test-001'] || { status: 'empty' }, null, 2);
+  document.getElementById('skills').innerText = JSON.stringify(skillHub, null, 2);
+}
+
+async function updateState() {
+  try {
+    const response = await fetch('/api/state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ task_id: 'test-001', status: 'updating' })
+    });
+    const data = await response.json();
+    stateMutex['test-001'] = true;
+    stateStore['test-001'] = {
+      task_id: 'test-001',
+      status: 'updated',
+      context: { updated_at: new Date().toISOString() }
+    };
+    setTimeout(() => delete stateMutex['test-001'], 1000);
+    renderPage();
+    document.getElementById('status').innerText = '✅ ' + data.message;
+  } catch (e) {
+    document.getElementById('status').innerText = '❌ Error: ' + e.message;
+  }
+}
+
+async function evolve() {
+  try {
+    const response = await fetch('/api/evolve', { method: 'POST' });
+    const data = await response.json();
+    if (data.success) {
+      skillHub.push(data.skill);
+      renderPage();
+      document.getElementById('logs').innerText = JSON.stringify(data.skill, null, 2);
+      document.getElementById('status').innerText = '✅ Skill evolved!';
+    }
+  } catch (e) {
+    document.getElementById('status').innerText = '❌ Error: ' + e.message;
+  }
+}
+
+function refreshSkills() {
+  renderPage();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  renderPage();
+});
+</script>
+</body>
+</html>
