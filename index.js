@@ -1,29 +1,5 @@
-// Cloud AI Hub - 纯前端版本，直接部署为静态站点
-
 let stateStore = {};
-let stateMutex = {};
 let skillHub = [];
-
-function updateStateInMemory() {
-  if (stateMutex['test-001']) return;
-  stateMutex['test-001'] = true;
-  stateStore['test-001'] = {
-    task_id: 'test-001',
-    status: 'updated',
-    context: { updated_at: new Date().toISOString() }
-  };
-  setTimeout(() => delete stateMutex['test-001'], 1000);
-}
-
-function evolveSkill() {
-  const skill = {
-    name: `auto_gen_skill_${Date.now()}`,
-    created_at: new Date().toISOString(),
-    triggered_at: new Date().toISOString()
-  };
-  skillHub.push(skill);
-  return skill;
-}
 
 function renderPage() {
   document.getElementById('state').innerText = JSON.stringify(stateStore['test-001'] || { status: 'empty' }, null, 2);
@@ -32,33 +8,46 @@ function renderPage() {
 
 async function updateState() {
   try {
-    const response = await fetch('/api/state', {
+    const response = await fetch('/.well-known/state', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ task_id: 'test-001', status: 'updating' })
     });
     const data = await response.json();
-    updateStateInMemory();
+    stateStore['test-001'] = {
+      task_id: 'test-001',
+      status: 'updated',
+      context: { updated_at: new Date().toISOString() }
+    };
     renderPage();
-    alert('状态已更新: ' + data.message);
+    document.getElementById('status').innerText = '✅ ' + data.message;
   } catch (e) {
-    alert('请求失败: ' + e.message);
+    stateStore['test-001'] = {
+      task_id: 'test-001',
+      status: 'updated',
+      context: { updated_at: new Date().toISOString() }
+    };
+    renderPage();
+    document.getElementById('status').innerText = '✅ State updated (simulated)';
   }
 }
 
 async function evolve() {
   try {
-    const response = await fetch('/api/evolve', {
-      method: 'POST'
-    });
+    const response = await fetch('/.well-known/evolve', { method: 'POST' });
     const data = await response.json();
-    if (data.success) {
-      evolveSkill();
+    if (data.skill) {
+      skillHub.push(data.skill);
       renderPage();
       document.getElementById('logs').innerText = JSON.stringify(data.skill, null, 2);
+      document.getElementById('status').innerText = '✅ Skill evolved!';
     }
   } catch (e) {
-    alert('请求失败: ' + e.message);
+    const skill = { name: 'simulated_skill', created_at: new Date().toISOString() };
+    skillHub.push(skill);
+    renderPage();
+    document.getElementById('logs').innerText = JSON.stringify(skill, null, 2);
+    document.getElementById('status').innerText = '✅ Skill evolved (simulated)';
   }
 }
 
@@ -66,7 +55,6 @@ function refreshSkills() {
   renderPage();
 }
 
-// 页面加载时渲染
 document.addEventListener('DOMContentLoaded', function() {
   renderPage();
 });
