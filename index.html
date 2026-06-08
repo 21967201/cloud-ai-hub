@@ -1,31 +1,80 @@
 <!DOCTYPE html>
 <html>
-<head><title>Cloud AI Hub</title>
-<style>
-  body { background: #1a1a1a; color: #00ff9d; font-family: monospace; padding: 20px; }
-  .card { background: #000; border: 1px solid #333; padding: 20px; margin: 20px 0; }
-  button { background: #00ff9d; color: #000; border: none; padding: 10px 20px; cursor: pointer; margin: 5px; }
-  .success { color: #00ff9d; }
-  .error { color: #ff4444; }
-</style>
+<head>
+  <title>Cloud AI Hub</title>
+  <style>
+    body { background: #1a1a1a; color: #00ff9d; font-family: monospace; padding: 20px; }
+    .card { background: #000; border: 1px solid #333; padding: 20px; margin: 20px 0; }
+    button { background: #00ff9d; color: #000; border: none; padding: 10px 20px; cursor: pointer; margin: 5px; }
+    .success { color: #00ff9d; }
+    .error { color: #ff4444; }
+    .chat-container { height: 300px; overflow-y: auto; border: 1px solid #333; padding: 10px; margin: 10px 0; }
+    .message { margin: 10px 0; padding: 10px; border-radius: 5px; }
+    .user-message { background: #003300; }
+    .ai-message { background: #001a00; }
+    #chat-input { width: 100%; padding: 10px; margin: 10px 0; background: #000; color: #00ff9d; border: 1px solid #333; }
+  </style>
 </head>
 <body>
-  <h1>🤖 Cloud AI Hub Dashboard</h1>
+  <h1>🤖 Cloud AI Hub - Workers AI Chat</h1>
   <div class="card">
-    <h3>📊 State Status</h3>
-    <div id="state">Empty</div>
-    <button onclick="updateState()">Update State</button>
-  </div>
-  <div class="card">
-    <h3>🧬 Evolution Logs</h3>
-    <div id="logs"></div>
-    <button onclick="evolve()">Trigger Evolution</button>
-  </div>
-  <div class="card">
-    <h3>📦 Deployed Skills</h3>
-    <div id="skills"></div>
+    <h3>💬 Chat with Workers AI</h3>
+    <div id="chat-container" class="chat-container"></div>
+    <input type="text" id="chat-input" placeholder="Type your message...">
+    <button onclick="sendMessage()">Send</button>
   </div>
   <div id="status" class="success"></div>
-  <script src="index.js"></script>
+  <script>
+    let chatHistory = [];
+    
+    function addMessage(content, isUser) {
+      const container = document.getElementById('chat-container');
+      const messageDiv = document.createElement('div');
+      messageDiv.className = 'message ' + (isUser ? 'user-message' : 'ai-message');
+      messageDiv.innerHTML = (isUser ? '👤 User: ' : '🤖 AI: ') + content;
+      container.appendChild(messageDiv);
+      container.scrollTop = container.scrollHeight;
+      
+      chatHistory.push({
+        role: isUser ? 'user' : 'assistant',
+        content: content
+      });
+    }
+    
+    async function sendMessage() {
+      const input = document.getElementById('chat-input');
+      const message = input.value.trim();
+      if (!message) return;
+      
+      addMessage(message, true);
+      input.value = '';
+      
+      try {
+        const response = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: message,
+            history: chatHistory
+          })
+        });
+        
+        const data = await response.json();
+        
+        if (data.error) {
+          addMessage('Error: ' + data.error, false);
+        } else {
+          addMessage(data.message, false);
+          chatHistory = data.history || chatHistory;
+        }
+      } catch (error) {
+        addMessage('Connection error: ' + error.message, false);
+      }
+    }
+    
+    document.getElementById('chat-input').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') sendMessage();
+    });
+  </script>
 </body>
 </html>

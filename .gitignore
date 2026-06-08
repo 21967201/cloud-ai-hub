@@ -1,3 +1,9 @@
+# Dependencies
 node_modules/
-*.log
+
+# Environment
 .env
+
+# Build
+dist/
+build/

@@ -8,7 +8,7 @@ function renderPage() {
 
 async function updateState() {
   try {
-    const response = await fetch('/.well-known/state', {
+    const response = await fetch('/api/state', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ task_id: 'test-001', status: 'updating' })
@@ -34,7 +34,7 @@ async function updateState() {
 
 async function evolve() {
   try {
-    const response = await fetch('/.well-known/evolve', { method: 'POST' });
+    const response = await fetch('/api/evolve', { method: 'POST' });
     const data = await response.json();
     if (data.skill) {
       skillHub.push(data.skill);
