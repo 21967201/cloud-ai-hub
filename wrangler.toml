@@ -6,4 +6,4 @@ compatibility_flags = ["nodejs_compat_v2"]
 binding = "AI"
 
 [ai.models]
-chat = ["@cf/meta/llama-3.3-70b-instruct", "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b", "@cf/mistralai/mistral-small-3.1-24b-instruct"]
+chat = ["@cf/meta/llama-3.3-70b-instruct", "@cf/meta/llama-4-scout-17b-16e-instruct", "@cf/deepseek-ai/deepseek-r1-distill-qwen-32b", "@cf/mistralai/mistral-small-3.1-24b-instruct", "@cf/qwen/qwen3-30b-a3b", "@cf/thudm/glm-5-32b"]
