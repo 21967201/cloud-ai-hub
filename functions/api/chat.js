@@ -23,8 +23,16 @@ export async function onRequestPost(context) {
       { role: 'user', content: message }
     ];
 
+    const modelMap = {
+      'llama-3.3': '@cf/meta/llama-3.3-70b-instruct',
+      'deepseek-r1': '@cf/deepseek-ai/deepseek-r1-distill-qwen-32b',
+      'mistral-small': '@cf/mistralai/mistral-small-3.1-24b-instruct',
+      'llama-3.1': '@cf/meta/llama-3.1-8b-instruct',
+    };
+    const selectedModel = modelMap[body.model] || modelMap['llama-3.3'];
+
     const answer = await context.env.AI.run(
-      '@cf/meta/llama-3.1-8b-instruct',
+      selectedModel,
       { messages }
     );
 
