@@ -24,12 +24,12 @@ export async function onRequestPost(context) {
     ];
 
     const modelMap = {
-      'llama-3.3': '@cf/meta/llama-3.3-70b-instruct',
+      'llama-3.3': '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
       'llama-4-scout': '@cf/meta/llama-4-scout-17b-16e-instruct',
       'deepseek-r1': '@cf/deepseek-ai/deepseek-r1-distill-qwen-32b',
       'mistral-small': '@cf/mistralai/mistral-small-3.1-24b-instruct',
-      'qwen3-30b': '@cf/qwen/qwen3-30b-a3b',
-      'glm-5': '@cf/thudm/glm-5-32b',
+      'qwen3-30b': '@cf/qwen/qwen3-30b-a3b-fp8',
+      'glm-5': '@cf/zai-org/glm-5.2',
     };
     const selectedModel = modelMap[body.model] || modelMap['llama-3.3'];
 
